@@ -13,5 +13,12 @@ public class Cliente {
 	private String apellido1;
 	private String apellido2;
 	private String ciudad;
-	private int categoría;
+	private Integer categoría;
+
+	public String getNombreCompleto() {
+		if (apellido2 != null && !apellido2.trim().isEmpty()) {
+			return nombre + " " + apellido1 + " " + apellido2;
+		}
+		return (nombre != null ? nombre : "") + (apellido1 != null ? " " + apellido1 : "");
+	}
 }

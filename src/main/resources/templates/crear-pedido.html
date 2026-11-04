@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Crear pedido')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+    <main class="container py-4" style="max-width: 720px">
+        <h1 class="h2 mb-4">Crear pedido</h1>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}">Error</span>
+        </div>
+        <form th:action="@{/pedidos/crear}" th:object="${pedido}" method="post">
+            <div class="mb-3">
+                <label class="form-label" for="total">Total</label>
+                <input class="form-control" id="total" type="number" step="any" th:field="*{total}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="fecha">Fecha</label>
+                <input class="form-control" id="fecha" type="date" th:field="*{fecha}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="clienteId">Cliente</label>
+                <select class="form-select" id="clienteId" th:field="*{clienteId}" required>
+                    <option value="" disabled th:selected="${pedido.clienteId == null}">-- Seleccionar Cliente --</option>
+                    <option th:each="c : ${clientes}" th:value="${c.id}" th:text="${c.nombreCompleto}"></option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label class="form-label" for="comercialId">Comercial</label>
+                <select class="form-select" id="comercialId" th:field="*{comercialId}" required>
+                    <option value="" disabled th:selected="${pedido.comercialId == null}">-- Seleccionar Comercial --</option>
+                    <option th:each="com : ${comerciales}" th:value="${com.id}" th:text="${com.nombreCompleto}"></option>
+                </select>
+            </div>
+            <button class="btn btn-primary" type="submit">Guardar</button>
+            <a class="btn btn-outline-secondary ms-2" th:href="@{/pedidos}">Cancelar</a>
+        </form>
+    </main>
+</body>
+</html>
