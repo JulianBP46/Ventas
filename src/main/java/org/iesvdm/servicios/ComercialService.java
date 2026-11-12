@@ -5,6 +5,8 @@ import java.util.Optional;
 
 import org.iesvdm.dao.ComercialDAO;
 import org.iesvdm.dao.PedidoDAO;
+import org.iesvdm.dto.ClienteTotalDTO;
+import org.iesvdm.dto.PedidoEstadisticasDTO;
 import org.iesvdm.modelo.Comercial;
 import org.iesvdm.modelo.PedidoDetalle;
 import org.springframework.stereotype.Service;
@@ -42,5 +44,14 @@ public class ComercialService {
 
 	public List<PedidoDetalle> listPedidosByComercial(int comercialId) {
 		return pedidoDAO.findByComercialId(comercialId);
+	}
+
+	public PedidoEstadisticasDTO getEstadisticasPedidos(int comercialId) {
+		List<PedidoDetalle> pedidos = listPedidosByComercial(comercialId);
+		return PedidoEstadisticasDTO.fromPedidos(pedidos);
+	}
+
+	public List<ClienteTotalDTO> listClientesByComercialOrderedByTotalDesc(int comercialId) {
+		return pedidoDAO.findClientesByComercialOrderByTotalDesc(comercialId);
 	}
 }

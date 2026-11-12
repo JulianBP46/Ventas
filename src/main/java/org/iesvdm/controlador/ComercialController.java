@@ -2,7 +2,10 @@ package org.iesvdm.controlador;
 
 import java.util.List;
 
+import org.iesvdm.dto.ClienteTotalDTO;
+import org.iesvdm.dto.PedidoEstadisticasDTO;
 import org.iesvdm.modelo.Comercial;
+import org.iesvdm.modelo.PedidoDetalle;
 import org.iesvdm.servicios.ComercialService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
@@ -34,8 +37,16 @@ public class ComercialController {
 	public String detalle(Model model, @PathVariable int id) {
 		return comercialService.find(id)
 				.map(comercial -> {
+					List<PedidoDetalle> pedidos = comercialService.listPedidosByComercial(id);
+					PedidoEstadisticasDTO estadisticas = comercialService.getEstadisticasPedidos(id);
+					List<ClienteTotalDTO> clientesOrdenados = comercialService.listClientesByComercialOrderedByTotalDesc(id);
+
 					model.addAttribute("comercial", comercial);
-					model.addAttribute("pedidos", comercialService.listPedidosByComercial(id));
+					model.addAttribute("pedidos", pedidos);
+					model.addAttribute("estadisticas", estadisticas);
+					model.addAttribute("pedidoEstadisticas", estadisticas);
+					model.addAttribute("clientesOrdenados", clientesOrdenados);
+					model.addAttribute("clientes", clientesOrdenados);
 					return "detalle-comercial";
 				})
 				.orElse("redirect:/comerciales");

@@ -141,5 +141,19 @@ public class PedidoDAOTest {
 		assertEquals("Adolfo Rubio Flores", list.get(0).getClienteNombreCompleto());
 		verify(jdbcTemplate, times(1)).query(anyString(), any(RowMapper.class), eq(3));
 	}
+
+	@Test
+	public void testFindClientesByComercialOrderByTotalDesc() {
+		org.iesvdm.dto.ClienteTotalDTO dto = new org.iesvdm.dto.ClienteTotalDTO(1, "Adela", "Salas", "Díaz", "Granada", 200, 5000.0);
+		when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1)))
+				.thenReturn(List.of(dto));
+
+		List<org.iesvdm.dto.ClienteTotalDTO> list = pedidoDAO.findClientesByComercialOrderByTotalDesc(1);
+
+		assertEquals(1, list.size());
+		assertEquals("Adela Salas Díaz", list.get(0).getNombreCompleto());
+		assertEquals(5000.0, list.get(0).getTotalPedidos());
+		verify(jdbcTemplate, times(1)).query(anyString(), any(RowMapper.class), eq(1));
+	}
 }
 

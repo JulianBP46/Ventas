@@ -6,6 +6,7 @@ import java.sql.Types;
 import java.util.List;
 import java.util.Optional;
 
+import org.iesvdm.dto.ClienteTotalDTO;
 import org.iesvdm.modelo.Pedido;
 import org.iesvdm.modelo.PedidoDetalle;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -173,6 +174,36 @@ public class PedidoDAOImpl implements PedidoDAO {
 				SELECT_PEDIDOS_CON_NOMBRES + " WHERE p.id_cliente = ?",
 				PEDIDO_DETALLE_ROW_MAPPER,
 				clienteId);
+	}
+
+	@Override
+	public List<ClienteTotalDTO> findClientesByComercialOrderByTotalDesc(int comercialId) {
+		String sql = """
+				SELECT c.id, c.nombre, c.apellido1, c.apellido2, c.ciudad, c.categoría,
+				       COALESCE(SUM(p.total), 0) AS total_pedidos
+				FROM cliente c
+				JOIN pedido p ON c.id = p.id_cliente
+				WHERE p.id_comercial = ?
+				GROUP BY c.id, c.nombre, c.apellido1, c.apellido2, c.ciudad, c.categoría
+				ORDER BY total_pedidos DESC
+				""";
+
+		List<ClienteTotalDTO> clientes = jdbcTemplate.query(
+				sql,
+				(rs, rowNum) -> new ClienteTotalDTO(
+						rs.getInt("id"),
+						rs.getString("nombre"),
+						rs.getString("apellido1"),
+						rs.getString("apellido2"),
+						rs.getString("ciudad"),
+						rs.getObject("categoría", Integer.class),
+						rs.getObject("total_pedidos", Double.class)
+				),
+				comercialId
+		);
+
+		log.info("Devueltos {} clientes ordenados por total de pedidos para el comercial {}.", clientes.size(), comercialId);
+		return clientes;
 	}
 }
 

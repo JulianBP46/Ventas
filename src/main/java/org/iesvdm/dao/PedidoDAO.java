@@ -2,6 +2,8 @@ package org.iesvdm.dao;
 
 import java.util.List;
 import java.util.Optional;
+
+import org.iesvdm.dto.ClienteTotalDTO;
 import org.iesvdm.modelo.Pedido;
 import org.iesvdm.modelo.PedidoDetalle;
 import org.springframework.stereotype.Repository;
@@ -18,5 +20,5 @@ public interface PedidoDAO {
 	Optional<PedidoDetalle> findDetalle(int id);
 	List<PedidoDetalle> findByComercialId(int comercialId);
 	List<PedidoDetalle> findByClienteId(int clienteId);
+	List<ClienteTotalDTO> findClientesByComercialOrderByTotalDesc(int comercialId);
 }
-
