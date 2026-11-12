@@ -29,6 +29,26 @@ CREATE TABLE pedido (
   FOREIGN KEY (id_comercial) REFERENCES comercial(id)
 );
 
+CREATE TABLE IF NOT EXISTS `cliente_has_comercial` (
+  `cliente_id` INT UNSIGNED NOT NULL,
+  `comercial_id` INT UNSIGNED NOT NULL,
+  `fecha` DATE,
+  `prioridad` INT,
+  PRIMARY KEY (`cliente_id`, `comercial_id`),
+  INDEX `fk_cliente_has_comercial_comercial1_idx` (`comercial_id` ASC) VISIBLE,
+  INDEX `fk_cliente_has_comercial_cliente1_idx` (`cliente_id` ASC) VISIBLE,
+  CONSTRAINT `fk_cliente_has_comercial_cliente1`
+    FOREIGN KEY (`cliente_id`)
+    REFERENCES `cliente` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_cliente_has_comercial_comercial1`
+    FOREIGN KEY (`comercial_id`)
+    REFERENCES `comercial` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
 INSERT INTO cliente VALUES(1, 'Aarón', 'Rivero', 'Gómez', 'Almería', 100);
 INSERT INTO cliente VALUES(2, 'Adela', 'Salas', 'Díaz', 'Granada', 200);
 INSERT INTO cliente VALUES(3, 'Adolfo', 'Rubio', 'Flores', 'Sevilla', NULL);

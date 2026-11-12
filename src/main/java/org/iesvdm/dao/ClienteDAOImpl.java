@@ -1,11 +1,15 @@
 package org.iesvdm.dao;
 
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.Types;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import org.iesvdm.dto.ClienteComercialDTO;
 import org.iesvdm.modelo.Cliente;
+import org.iesvdm.modelo.Comercial;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -151,6 +155,90 @@ public class ClienteDAOImpl implements ClienteDAO {
 		
 		log.info("Delete de Cliente con {} registros eliminados.", rows);		
 		
+	}
+
+	@Override
+	public void vincularComercial(int clienteId, int comercialId, LocalDate fecha, Integer prioridad) {
+		String sql = """
+				INSERT INTO cliente_has_comercial (cliente_id, comercial_id, fecha, prioridad)
+				VALUES (?, ?, ?, ?)
+				ON DUPLICATE KEY UPDATE fecha = VALUES(fecha), prioridad = VALUES(prioridad)
+				""";
+
+		int rows = jdbcTemplate.update(
+				sql,
+				clienteId,
+				comercialId,
+				fecha != null ? Date.valueOf(fecha) : null,
+				prioridad
+		);
+
+		log.info("Vinculado comercial {} con cliente {}. Filas afectadas: {}", comercialId, clienteId, rows);
+	}
+
+	@Override
+	public void desvincularComercial(int clienteId, int comercialId) {
+		int rows = jdbcTemplate.update(
+				"DELETE FROM cliente_has_comercial WHERE cliente_id = ? AND comercial_id = ?",
+				clienteId,
+				comercialId
+		);
+
+		log.info("Desvinculado comercial {} de cliente {}. Filas afectadas: {}", comercialId, clienteId, rows);
+	}
+
+	@Override
+	public List<ClienteComercialDTO> getComercialesVinculados(int clienteId) {
+		String sql = """
+				SELECT chc.cliente_id, chc.comercial_id, chc.fecha, chc.prioridad,
+				       c.nombre AS comercial_nombre, c.apellido1 AS comercial_apellido1, c.apellido2 AS comercial_apellido2,
+				       c.comisión AS comercial_comision,
+				       CONCAT_WS(' ', c.nombre, c.apellido1, c.apellido2) AS comercial_nombre_completo
+				FROM cliente_has_comercial chc
+				JOIN comercial c ON chc.comercial_id = c.id
+				WHERE chc.cliente_id = ?
+				ORDER BY chc.prioridad ASC, c.id ASC
+				""";
+
+		return jdbcTemplate.query(
+				sql,
+				(rs, rowNum) -> new ClienteComercialDTO(
+						rs.getInt("cliente_id"),
+						rs.getInt("comercial_id"),
+						rs.getDate("fecha") != null ? rs.getDate("fecha").toLocalDate() : null,
+						rs.getObject("prioridad", Integer.class),
+						rs.getString("comercial_nombre"),
+						rs.getString("comercial_apellido1"),
+						rs.getString("comercial_apellido2"),
+						rs.getObject("comercial_comision", Float.class),
+						rs.getString("comercial_nombre_completo")
+				),
+				clienteId
+		);
+	}
+
+	@Override
+	public List<Comercial> getComercialesDisponibles(int clienteId) {
+		String sql = """
+				SELECT c.id, c.nombre, c.apellido1, c.apellido2, c.comisión
+				FROM comercial c
+				WHERE c.id NOT IN (
+				    SELECT chc.comercial_id FROM cliente_has_comercial chc WHERE chc.cliente_id = ?
+				)
+				ORDER BY c.nombre, c.apellido1
+				""";
+
+		return jdbcTemplate.query(
+				sql,
+				(rs, rowNum) -> new Comercial(
+						rs.getInt("id"),
+						rs.getString("nombre"),
+						rs.getString("apellido1"),
+						rs.getString("apellido2"),
+						rs.getObject("comisión", Float.class)
+				),
+				clienteId
+		);
 	}
 	
 }

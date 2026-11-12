@@ -1,11 +1,14 @@
 package org.iesvdm.servicios;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 import org.iesvdm.dao.ClienteDAO;
 import org.iesvdm.dao.PedidoDAO;
+import org.iesvdm.dto.ClienteComercialDTO;
 import org.iesvdm.modelo.Cliente;
+import org.iesvdm.modelo.Comercial;
 import org.iesvdm.modelo.PedidoDetalle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,5 +44,21 @@ public class ClienteService {
 
     public List<PedidoDetalle> listPedidosByCliente(int clienteId) {
         return pedidoDAO.findByClienteId(clienteId);
+    }
+
+    public void vincularComercial(int clienteId, int comercialId, LocalDate fecha, Integer prioridad) {
+        clienteDAO.vincularComercial(clienteId, comercialId, fecha, prioridad);
+    }
+
+    public void desvincularComercial(int clienteId, int comercialId) {
+        clienteDAO.desvincularComercial(clienteId, comercialId);
+    }
+
+    public List<ClienteComercialDTO> listComercialesVinculados(int clienteId) {
+        return clienteDAO.getComercialesVinculados(clienteId);
+    }
+
+    public List<Comercial> listComercialesDisponibles(int clienteId) {
+        return clienteDAO.getComercialesDisponibles(clienteId);
     }
 }
