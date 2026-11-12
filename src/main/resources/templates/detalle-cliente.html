@@ -3,7 +3,7 @@
 <head th:replace="~{fragments/layout :: head('Detalle del cliente')}"></head>
 <body>
     <nav th:replace="~{fragments/layout :: navbar}"></nav>
-    <main class="container py-4" style="max-width: 720px">
+    <main class="container py-4" style="max-width: 800px">
         <h1 class="h2 mb-4">Detalle del cliente</h1>
         <dl class="row">
             <dt class="col-sm-4">ID</dt><dd class="col-sm-8" th:text="${cliente.id}">0</dd>
@@ -13,6 +13,32 @@
             <dt class="col-sm-4">Ciudad</dt><dd class="col-sm-8" th:text="${cliente.ciudad ?: '-'}">ciudad</dd>
             <dt class="col-sm-4">Categoría</dt><dd class="col-sm-8" th:text="${cliente.categoría ?: '-'}">categoría</dd>
         </dl>
+
+        <h2 class="h4 mt-5 mb-3">Pedidos asociados</h2>
+        <div class="table-responsive mb-4">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Total</th>
+                        <th>Fecha</th>
+                        <th>Comercial</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${#lists.isEmpty(pedidos)}">
+                        <td colspan="4" class="text-center text-muted py-3">No hay pedidos asociados a este cliente.</td>
+                    </tr>
+                    <tr th:each="pedido : ${pedidos}">
+                        <td th:text="${pedido.id}">0</td>
+                        <td th:text="${pedido.total}">0.00</td>
+                        <td th:text="${pedido.fecha ?: '-'}">fecha</td>
+                        <td th:text="${pedido.comercialNombre}">comercial</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
         <a class="btn btn-outline-secondary" th:href="@{/clientes}">Volver</a>
     </main>
 </body>

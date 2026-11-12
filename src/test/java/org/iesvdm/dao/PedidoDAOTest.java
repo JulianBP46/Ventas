@@ -114,5 +114,32 @@ public class PedidoDAOTest {
 		assertTrue(result.isPresent());
 		assertEquals("Adolfo Rubio Flores", result.get().getClienteNombreCompleto());
 	}
+
+	@Test
+	public void testFindByComercialId() {
+		PedidoDetalle detalle = new PedidoDetalle(1, 250.75, LocalDate.of(2023, 6, 15), 3, 4, "Adolfo Rubio Flores", "Marta Herrera Gil");
+		when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(4)))
+				.thenReturn(List.of(detalle));
+
+		List<PedidoDetalle> list = pedidoDAO.findByComercialId(4);
+
+		assertEquals(1, list.size());
+		assertEquals("Adolfo Rubio Flores", list.get(0).getClienteNombreCompleto());
+		assertEquals("Marta Herrera Gil", list.get(0).getComercialNombreCompleto());
+		verify(jdbcTemplate, times(1)).query(anyString(), any(RowMapper.class), eq(4));
+	}
+
+	@Test
+	public void testFindByClienteId() {
+		PedidoDetalle detalle = new PedidoDetalle(1, 250.75, LocalDate.of(2023, 6, 15), 3, 4, "Adolfo Rubio Flores", "Marta Herrera Gil");
+		when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(3)))
+				.thenReturn(List.of(detalle));
+
+		List<PedidoDetalle> list = pedidoDAO.findByClienteId(3);
+
+		assertEquals(1, list.size());
+		assertEquals("Adolfo Rubio Flores", list.get(0).getClienteNombreCompleto());
+		verify(jdbcTemplate, times(1)).query(anyString(), any(RowMapper.class), eq(3));
+	}
 }
 

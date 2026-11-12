@@ -9,6 +9,7 @@ import java.util.Optional;
 import org.iesvdm.modelo.Pedido;
 import org.iesvdm.modelo.PedidoDetalle;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -115,29 +116,30 @@ public class PedidoDAOImpl implements PedidoDAO {
 		log.info("Delete de Pedido con {} registros eliminados.", rows);
 	}
 
+	private static final String SELECT_PEDIDOS_CON_NOMBRES = """
+			SELECT p.id, p.total, p.fecha, p.id_cliente, p.id_comercial,
+			       CONCAT_WS(' ', c.nombre, c.apellido1, c.apellido2) AS cliente_nombre,
+			       CONCAT_WS(' ', com.nombre, com.apellido1, com.apellido2) AS comercial_nombre
+			FROM pedido p
+			LEFT JOIN cliente c ON p.id_cliente = c.id
+			LEFT JOIN comercial com ON p.id_comercial = com.id
+			""";
+
+	private static final RowMapper<PedidoDetalle> PEDIDO_DETALLE_ROW_MAPPER = (rs, rowNum) -> new PedidoDetalle(
+			rs.getInt("id"),
+			rs.getObject("total", Double.class),
+			rs.getDate("fecha") != null ? rs.getDate("fecha").toLocalDate() : null,
+			rs.getInt("id_cliente"),
+			rs.getInt("id_comercial"),
+			rs.getString("cliente_nombre"),
+			rs.getString("comercial_nombre")
+	);
+
 	@Override
 	public List<PedidoDetalle> getAllDetalle() {
-		String sql = """
-				SELECT p.id, p.total, p.fecha, p.id_cliente, p.id_comercial,
-				       CONCAT_WS(' ', c.nombre, c.apellido1, c.apellido2) AS cliente_nombre,
-				       CONCAT_WS(' ', com.nombre, com.apellido1, com.apellido2) AS comercial_nombre
-				FROM pedido p
-				LEFT JOIN cliente c ON p.id_cliente = c.id
-				LEFT JOIN comercial com ON p.id_comercial = com.id
-				ORDER BY p.id
-				""";
-
 		List<PedidoDetalle> pedidosDetalle = jdbcTemplate.query(
-				sql,
-				(rs, rowNum) -> new PedidoDetalle(
-						rs.getInt("id"),
-						rs.getObject("total", Double.class),
-						rs.getDate("fecha") != null ? rs.getDate("fecha").toLocalDate() : null,
-						rs.getInt("id_cliente"),
-						rs.getInt("id_comercial"),
-						rs.getString("cliente_nombre"),
-						rs.getString("comercial_nombre")
-				)
+				SELECT_PEDIDOS_CON_NOMBRES + " ORDER BY p.id",
+				PEDIDO_DETALLE_ROW_MAPPER
 		);
 		log.info("Devueltos {} registros de Pedido con detalle.", pedidosDetalle.size());
 		return pedidosDetalle;
@@ -145,27 +147,9 @@ public class PedidoDAOImpl implements PedidoDAO {
 
 	@Override
 	public Optional<PedidoDetalle> findDetalle(int id) {
-		String sql = """
-				SELECT p.id, p.total, p.fecha, p.id_cliente, p.id_comercial,
-				       CONCAT_WS(' ', c.nombre, c.apellido1, c.apellido2) AS cliente_nombre,
-				       CONCAT_WS(' ', com.nombre, com.apellido1, com.apellido2) AS comercial_nombre
-				FROM pedido p
-				LEFT JOIN cliente c ON p.id_cliente = c.id
-				LEFT JOIN comercial com ON p.id_comercial = com.id
-				WHERE p.id = ?
-				""";
-
 		List<PedidoDetalle> pedidosDetalle = jdbcTemplate.query(
-				sql,
-				(rs, rowNum) -> new PedidoDetalle(
-						rs.getInt("id"),
-						rs.getObject("total", Double.class),
-						rs.getDate("fecha") != null ? rs.getDate("fecha").toLocalDate() : null,
-						rs.getInt("id_cliente"),
-						rs.getInt("id_comercial"),
-						rs.getString("cliente_nombre"),
-						rs.getString("comercial_nombre")
-				),
+				SELECT_PEDIDOS_CON_NOMBRES + " WHERE p.id = ?",
+				PEDIDO_DETALLE_ROW_MAPPER,
 				id
 		);
 
@@ -173,6 +157,22 @@ public class PedidoDAOImpl implements PedidoDAO {
 			log.info("PedidoDetalle con id {} no encontrado.", id);
 		}
 		return pedidosDetalle.stream().findFirst();
+	}
+
+	@Override
+	public List<PedidoDetalle> findByComercialId(int comercialId) {
+		return jdbcTemplate.query(
+				SELECT_PEDIDOS_CON_NOMBRES + " WHERE p.id_comercial = ?",
+				PEDIDO_DETALLE_ROW_MAPPER,
+				comercialId);
+	}
+
+	@Override
+	public List<PedidoDetalle> findByClienteId(int clienteId) {
+		return jdbcTemplate.query(
+				SELECT_PEDIDOS_CON_NOMBRES + " WHERE p.id_cliente = ?",
+				PEDIDO_DETALLE_ROW_MAPPER,
+				clienteId);
 	}
 }
 
